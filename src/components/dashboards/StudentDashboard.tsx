@@ -6,7 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BookOpen, Clock, CheckCircle, Award, Calendar, FileText, Video, Download } from 'lucide-react';
+import { useCourses } from '@/hooks/useCourses';
+import { useGrades } from '@/hooks/useGrades';
+import { useSchedules } from '@/hooks/useSchedules';
 
 interface StudentDashboardProps {
   onLogout: () => void;
@@ -14,6 +18,9 @@ interface StudentDashboardProps {
 
 const StudentDashboard = ({ onLogout }: StudentDashboardProps) => {
   const [activeSection, setActiveSection] = useState('dashboard');
+  const { courses, loading: coursesLoading } = useCourses();
+  const { grades, loading: gradesLoading } = useGrades();
+  const { schedules, loading: schedulesLoading } = useSchedules();
 
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <BookOpen className="h-4 w-4" /> },
@@ -23,6 +30,25 @@ const StudentDashboard = ({ onLogout }: StudentDashboardProps) => {
     { id: 'schedule', label: 'Schedule', icon: <Calendar className="h-4 w-4" /> },
   ];
 
+  const getDayName = (dayOfWeek: number) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[dayOfWeek] || 'Unknown';
+  };
+
+  const formatTime = (time: string) => {
+    return new Date(`1970-01-01T${time}`).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const calculateAverageGrade = () => {
+    if (grades.length === 0) return 0;
+    const total = grades.reduce((sum, grade) => sum + grade.grade_value, 0);
+    return Math.round(total / grades.length);
+  };
+
   const renderContent = () => {
     switch (activeSection) {
       case 'dashboard':
@@ -31,7 +57,7 @@ const StudentDashboard = ({ onLogout }: StudentDashboardProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard
                 title="Enrolled Courses"
-                value="6"
+                value={coursesLoading ? "..." : courses.length.toString()}
                 icon={BookOpen}
                 description="Active this semester"
                 color="blue"
@@ -52,7 +78,7 @@ const StudentDashboard = ({ onLogout }: StudentDashboardProps) => {
               />
               <MetricCard
                 title="Average Grade"
-                value="87%"
+                value={gradesLoading ? "..." : `${calculateAverageGrade()}%`}
                 icon={Award}
                 description="Current semester"
                 color="purple"
@@ -117,39 +143,171 @@ const StudentDashboard = ({ onLogout }: StudentDashboardProps) => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-white">My Courses</h2>
-              <Badge variant="secondary">6 Active Courses</Badge>
+              <Badge variant="secondary">{coursesLoading ? "..." : `${courses.length} Active Courses`}</Badge>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { title: 'Data Structures & Algorithms', instructor: 'Dr. Smith', progress: 75, students: 45, color: 'blue' },
-                { title: 'Web Development', instructor: 'Prof. Johnson', progress: 60, students: 52, color: 'green' },
-                { title: 'Database Systems', instructor: 'Dr. Brown', progress: 90, students: 38, color: 'purple' },
-                { title: 'Machine Learning', instructor: 'Prof. Davis', progress: 45, students: 41, color: 'orange' },
-                { title: 'Software Engineering', instructor: 'Dr. Wilson', progress: 30, students: 47, color: 'red' },
-                { title: 'Computer Networks', instructor: 'Prof. Miller', progress: 85, students: 39, color: 'blue' },
-              ].map((course, index) => (
-                <Card key={index} className="bg-gray-800/50 border-gray-700 hover:bg-gray-800/70 transition-colors">
-                  <CardHeader>
-                    <CardTitle className="text-white text-lg">{course.title}</CardTitle>
-                    <CardDescription className="text-gray-400">{course.instructor}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-300">Progress</span>
-                      <span className="text-gray-400">{course.progress}%</span>
-                    </div>
-                    <Progress value={course.progress} className="h-2" />
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-400">{course.students} students</span>
-                      <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
-                        Enter Course
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            {coursesLoading ? (
+              <div className="text-center text-gray-400">Loading courses...</div>
+            ) : courses.length === 0 ? (
+              <div className="text-center text-gray-400">No courses enrolled</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {courses.map((course) => (
+                  <Card key={course.id} className="bg-gray-800/50 border-gray-700 hover:bg-gray-800/70 transition-colors">
+                    <CardHeader>
+                      <CardTitle className="text-white text-lg">{course.title}</CardTitle>
+                      <CardDescription className="text-gray-400">{course.code}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-300">Credits</span>
+                        <span className="text-gray-400">{course.credits || 3}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-400">{course.department}</span>
+                        <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
+                          Enter Course
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+
+      case 'grades':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-white">Grades</h2>
+              <div className="flex gap-2">
+                <Badge variant="default">Average: {calculateAverageGrade()}%</Badge>
+                <Badge variant="secondary">{grades.length} Grades</Badge>
+              </div>
             </div>
+
+            {gradesLoading ? (
+              <div className="text-center text-gray-400">Loading grades...</div>
+            ) : grades.length === 0 ? (
+              <Card className="bg-gray-800/50 border-gray-700">
+                <CardContent className="p-6 text-center">
+                  <p className="text-gray-400">No grades available yet</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="bg-gray-800/50 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-white">Grade Report</CardTitle>
+                  <CardDescription className="text-gray-400">Your academic performance overview</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-gray-700">
+                        <TableHead className="text-gray-300">Course</TableHead>
+                        <TableHead className="text-gray-300">Assignment</TableHead>
+                        <TableHead className="text-gray-300">Grade</TableHead>
+                        <TableHead className="text-gray-300">Points</TableHead>
+                        <TableHead className="text-gray-300">Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {grades.map((grade) => (
+                        <TableRow key={grade.id} className="border-gray-700">
+                          <TableCell className="text-white">
+                            <div>
+                              <div className="font-medium">{grade.course?.title || 'Unknown Course'}</div>
+                              <div className="text-sm text-gray-400">{grade.course?.code}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-gray-300">
+                            {grade.assignment?.title || 'General Grade'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="text-white font-medium">{grade.grade_value}%</span>
+                              {grade.grade_letter && (
+                                <Badge variant={grade.grade_value >= 90 ? 'default' : grade.grade_value >= 80 ? 'secondary' : 'destructive'}>
+                                  {grade.grade_letter}
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-gray-300">
+                            {grade.points_earned && grade.points_possible 
+                              ? `${grade.points_earned}/${grade.points_possible}`
+                              : '-'
+                            }
+                          </TableCell>
+                          <TableCell className="text-gray-400">
+                            {grade.graded_at 
+                              ? new Date(grade.graded_at).toLocaleDateString()
+                              : '-'
+                            }
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        );
+
+      case 'schedule':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-white">Class Schedule</h2>
+              <Badge variant="secondary">Fall 2024</Badge>
+            </div>
+
+            {schedulesLoading ? (
+              <div className="text-center text-gray-400">Loading schedule...</div>
+            ) : schedules.length === 0 ? (
+              <Card className="bg-gray-800/50 border-gray-700">
+                <CardContent className="p-6 text-center">
+                  <p className="text-gray-400">No schedule available</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {schedules.map((schedule) => (
+                  <Card key={schedule.id} className="bg-gray-800/50 border-gray-700">
+                    <CardHeader>
+                      <CardTitle className="text-white flex items-center gap-2">
+                        <Calendar className="h-5 w-5 text-orange-500" />
+                        {schedule.course?.title || 'Unknown Course'}
+                      </CardTitle>
+                      <CardDescription className="text-gray-400">
+                        {schedule.course?.code}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-300">Day</span>
+                        <span className="text-white font-medium">{getDayName(schedule.day_of_week)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-300">Time</span>
+                        <span className="text-white font-medium">
+                          {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
+                        </span>
+                      </div>
+                      {schedule.location && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-300">Location</span>
+                          <span className="text-white font-medium">{schedule.location}</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         );
 

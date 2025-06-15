@@ -142,6 +142,63 @@ export type Database = {
           },
         ]
       }
+      grades: {
+        Row: {
+          assignment_id: string | null
+          course_id: string
+          created_at: string | null
+          grade_letter: string | null
+          grade_value: number
+          graded_at: string | null
+          id: string
+          points_earned: number | null
+          points_possible: number | null
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          assignment_id?: string | null
+          course_id: string
+          created_at?: string | null
+          grade_letter?: string | null
+          grade_value: number
+          graded_at?: string | null
+          id?: string
+          points_earned?: number | null
+          points_possible?: number | null
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          assignment_id?: string | null
+          course_id?: string
+          created_at?: string | null
+          grade_letter?: string | null
+          grade_value?: number
+          graded_at?: string | null
+          id?: string
+          points_earned?: number | null
+          points_possible?: number | null
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grades_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grades_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -213,6 +270,53 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      schedules: {
+        Row: {
+          course_id: string
+          created_at: string | null
+          day_of_week: number
+          end_time: string
+          id: string
+          location: string | null
+          semester: string | null
+          start_time: string
+          updated_at: string | null
+          year: number | null
+        }
+        Insert: {
+          course_id: string
+          created_at?: string | null
+          day_of_week: number
+          end_time: string
+          id?: string
+          location?: string | null
+          semester?: string | null
+          start_time: string
+          updated_at?: string | null
+          year?: number | null
+        }
+        Update: {
+          course_id?: string
+          created_at?: string | null
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          location?: string | null
+          semester?: string | null
+          start_time?: string
+          updated_at?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       submissions: {
         Row: {
