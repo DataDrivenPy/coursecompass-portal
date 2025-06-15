@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Sidebar from '../shared/Sidebar';
 import MetricCard from '../shared/MetricCard';
@@ -6,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, BookOpen, BarChart3, Settings, UserPlus, Database, Shield, Activity } from 'lucide-react';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -13,6 +13,7 @@ interface AdminDashboardProps {
 
 const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
   const [activeSection, setActiveSection] = useState('dashboard');
+  const { profile } = useUserProfile();
 
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <BarChart3 className="h-4 w-4" /> },
@@ -22,6 +23,10 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
     { id: 'system', label: 'System Settings', icon: <Settings className="h-4 w-4" /> },
     { id: 'security', label: 'Security', icon: <Shield className="h-4 w-4" /> },
   ];
+
+  const displayName = profile 
+    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email
+    : 'Admin User';
 
   const renderContent = () => {
     switch (activeSection) {
@@ -226,7 +231,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
         onItemClick={setActiveSection}
         onLogout={onLogout}
         userRole="admin"
-        userName="Admin User"
+        userName={displayName}
       />
       <div className="flex-1 overflow-auto">
         <div className="p-6">

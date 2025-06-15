@@ -3,6 +3,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SidebarItem {
   id: string;
@@ -19,7 +20,11 @@ interface SidebarProps {
   userName?: string;
 }
 
-const Sidebar = ({ items, activeItem, onItemClick, onLogout, userRole, userName = "User" }: SidebarProps) => {
+const Sidebar = ({ items, activeItem, onItemClick, onLogout, userRole, userName }: SidebarProps) => {
+  const { user } = useAuth();
+  
+  const displayName = userName || user?.user_metadata?.first_name || user?.email || "User";
+
   return (
     <div className="w-64 bg-gray-900 border-r border-gray-700 flex flex-col h-screen">
       {/* Header */}
@@ -55,7 +60,7 @@ const Sidebar = ({ items, activeItem, onItemClick, onLogout, userRole, userName 
       <div className="p-4 border-t border-gray-700">
         <div className="mb-3">
           <div className="text-sm text-gray-400">Signed in as</div>
-          <div className="text-white font-medium">{userName}</div>
+          <div className="text-white font-medium">{displayName}</div>
         </div>
         <Button
           variant="ghost"
