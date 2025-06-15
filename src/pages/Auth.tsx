@@ -32,22 +32,28 @@ const Auth = () => {
 
     try {
       if (isLogin) {
+        console.log('Attempting sign in for:', email);
         const { error } = await signIn(email, password);
         if (error) {
+          console.error('Sign in error:', error);
           toast.error(error.message);
         } else {
           toast.success('Successfully signed in!');
-          navigate('/');
+          // Force page reload for clean state
+          window.location.href = '/';
         }
       } else {
+        console.log('Attempting sign up for:', email);
         const { error } = await signUp(email, password, firstName, lastName);
         if (error) {
+          console.error('Sign up error:', error);
           toast.error(error.message);
         } else {
           toast.success('Check your email to confirm your account!');
         }
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast.error(error.message);
     } finally {
       setLoading(false);

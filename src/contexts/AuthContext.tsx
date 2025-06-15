@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { signInWithCleanup, signUpWithCleanup, signOutWithCleanup } from '@/utils/authHelpers';
 
 interface AuthContextType {
   user: User | null;
@@ -33,6 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -51,12 +53,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUserRole('student');
               } else {
                 setUserRole(profile?.role || 'student');
+                console.log('User role set to:', profile?.role || 'student');
               }
             } catch (error) {
               console.error('Error fetching user role:', error);
               setUserRole('student');
             }
-          }, 0);
+          }, 100);
         } else {
           setUserRole(null);
         }
@@ -67,6 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       if (!session) {
@@ -78,32 +82,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await signInWithCleanup(email, password);
     return { error };
   };
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-        },
-      },
-    });
+    const { error } = await signUpWithCleanup(email, password, firstName, lastName);
     return { error };
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await signOutWithCleanup();
   };
 
   const value = {
