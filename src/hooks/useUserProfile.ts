@@ -30,12 +30,21 @@ export const useUserProfile = () => {
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
           setError(error.message);
-        } else {
-          setProfile(data);
+        } else if (data) {
+          // Create a complete profile object with email from user
+          const completeProfile: UserProfile = {
+            id: data.id,
+            first_name: data.full_name?.split(' ')[0] || user.user_metadata?.first_name || null,
+            last_name: data.full_name?.split(' ').slice(1).join(' ') || user.user_metadata?.last_name || null,
+            email: user.email || '',
+            role: data.role || 'student',
+            created_at: data.created_at || new Date().toISOString(),
+          };
+          setProfile(completeProfile);
         }
       } catch (err: any) {
         setError(err.message);

@@ -40,13 +40,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Defer profile fetching to prevent deadlocks
           setTimeout(async () => {
             try {
-              const { data: profile } = await supabase
+              const { data: profile, error } = await supabase
                 .from('profiles')
                 .select('role')
                 .eq('id', session.user.id)
-                .single();
+                .maybeSingle();
               
-              setUserRole(profile?.role || 'student');
+              if (error) {
+                console.error('Error fetching user role:', error);
+                setUserRole('student');
+              } else {
+                setUserRole(profile?.role || 'student');
+              }
             } catch (error) {
               console.error('Error fetching user role:', error);
               setUserRole('student');
