@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { GraduationCap, Mail, Lock, User } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { GraduationCap, Mail, Lock, User, UserCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -15,6 +16,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [role, setRole] = useState('student');
   const [loading, setLoading] = useState(false);
   
   const { signIn, signUp, user } = useAuth();
@@ -43,8 +45,8 @@ const Auth = () => {
           window.location.href = '/';
         }
       } else {
-        console.log('Attempting sign up for:', email);
-        const { error } = await signUp(email, password, firstName, lastName);
+        console.log('Attempting sign up for:', email, 'with role:', role);
+        const { error } = await signUp(email, password, firstName, lastName, role);
         if (error) {
           console.error('Sign up error:', error);
           toast.error(error.message);
@@ -86,38 +88,63 @@ const Auth = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName" className="text-gray-300">First Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="firstName"
-                        type="text"
-                        placeholder="John"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className="pl-10 bg-gray-700 border-gray-600 text-white"
-                        required={!isLogin}
-                      />
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="firstName" className="text-gray-300">First Name</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="firstName"
+                          type="text"
+                          placeholder="John"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          className="pl-10 bg-gray-700 border-gray-600 text-white"
+                          required={!isLogin}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="lastName" className="text-gray-300">Last Name</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="lastName"
+                          type="text"
+                          placeholder="Doe"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          className="pl-10 bg-gray-700 border-gray-600 text-white"
+                          required={!isLogin}
+                        />
+                      </div>
                     </div>
                   </div>
+                  
                   <div>
-                    <Label htmlFor="lastName" className="text-gray-300">Last Name</Label>
+                    <Label htmlFor="role" className="text-gray-300">Select Your Role</Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="lastName"
-                        type="text"
-                        placeholder="Doe"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        className="pl-10 bg-gray-700 border-gray-600 text-white"
-                        required={!isLogin}
-                      />
+                      <UserCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
+                      <Select value={role} onValueChange={setRole}>
+                        <SelectTrigger className="pl-10 bg-gray-700 border-gray-600 text-white">
+                          <SelectValue placeholder="Choose your role" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-700 border-gray-600">
+                          <SelectItem value="student" className="text-white hover:bg-gray-600">
+                            Student
+                          </SelectItem>
+                          <SelectItem value="faculty" className="text-white hover:bg-gray-600">
+                            Faculty
+                          </SelectItem>
+                          <SelectItem value="admin" className="text-white hover:bg-gray-600">
+                            Administrator
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                </div>
+                </>
               )}
               
               <div>

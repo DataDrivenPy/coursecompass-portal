@@ -10,7 +10,7 @@ interface AuthContextType {
   userRole: string | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, firstName: string, lastName: string, role?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -86,8 +86,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
-    const { error } = await signUpWithCleanup(email, password, firstName, lastName);
+  const signUp = async (email: string, password: string, firstName: string, lastName: string, role: string = 'student') => {
+    const { error } = await signUpWithCleanup(email, password, firstName, lastName, role);
     return { error };
   };
 

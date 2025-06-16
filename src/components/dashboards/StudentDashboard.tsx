@@ -1,13 +1,13 @@
-
 import React, { useState } from 'react';
 import Sidebar from '../shared/Sidebar';
 import MetricCard from '../shared/MetricCard';
+import ScheduleCalendar from '../schedule/ScheduleCalendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { BookOpen, Clock, CheckCircle, Award, Calendar, FileText, Video, Download } from 'lucide-react';
+import { BookOpen, Clock, CheckCircle, Award, Calendar, FileText } from 'lucide-react';
 import { useCourses } from '@/hooks/useCourses';
 import { useGrades } from '@/hooks/useGrades';
 import { useSchedules } from '@/hooks/useSchedules';
@@ -274,39 +274,7 @@ const StudentDashboard = ({ onLogout }: StudentDashboardProps) => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {schedules.map((schedule) => (
-                  <Card key={schedule.id} className="bg-gray-800/50 border-gray-700">
-                    <CardHeader>
-                      <CardTitle className="text-white flex items-center gap-2">
-                        <Calendar className="h-5 w-5 text-orange-500" />
-                        {schedule.course?.title || 'Unknown Course'}
-                      </CardTitle>
-                      <CardDescription className="text-gray-400">
-                        {schedule.course?.code}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-300">Day</span>
-                        <span className="text-white font-medium">{getDayName(schedule.day_of_week)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-300">Time</span>
-                        <span className="text-white font-medium">
-                          {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
-                        </span>
-                      </div>
-                      {schedule.location && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-300">Location</span>
-                          <span className="text-white font-medium">{schedule.location}</span>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <ScheduleCalendar schedules={schedules} />
             )}
           </div>
         );
@@ -377,7 +345,6 @@ const StudentDashboard = ({ onLogout }: StudentDashboardProps) => {
         onItemClick={setActiveSection}
         onLogout={onLogout}
         userRole="student"
-        userName="John Doe"
       />
       <div className="flex-1 overflow-auto">
         <div className="p-6">

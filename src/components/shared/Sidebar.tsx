@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 interface SidebarItem {
   id: string;
@@ -22,8 +23,29 @@ interface SidebarProps {
 
 const Sidebar = ({ items, activeItem, onItemClick, onLogout, userRole, userName }: SidebarProps) => {
   const { user } = useAuth();
+  const { profile } = useUserProfile();
   
-  const displayName = userName || user?.user_metadata?.first_name || user?.email || "User";
+  // Get display name from profile first, then fallback to user metadata, then email
+  const getDisplayName = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name} ${profile.last_name}`;
+    }
+    if (profile?.first_name) {
+      return profile.first_name;
+    }
+    if (userName) {
+      return userName;
+    }
+    if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
+      return `${user.user_metadata.first_name} ${user.user_metadata.last_name}`;
+    }
+    if (user?.user_metadata?.first_name) {
+      return user.user_metadata.first_name;
+    }
+    return user?.email?.split('@')[0] || "User";
+  };
+
+  const displayName = getDisplayName();
 
   return (
     <div className="w-64 bg-gray-900 border-r border-gray-700 flex flex-col h-screen">
@@ -61,6 +83,9 @@ const Sidebar = ({ items, activeItem, onItemClick, onLogout, userRole, userName 
         <div className="mb-3">
           <div className="text-sm text-gray-400">Signed in as</div>
           <div className="text-white font-medium">{displayName}</div>
+          {user?.email && (
+            <div className="text-xs text-gray-500">{user.email}</div>
+          )}
         </div>
         <Button
           variant="ghost"

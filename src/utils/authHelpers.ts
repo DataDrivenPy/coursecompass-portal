@@ -46,7 +46,7 @@ export const signInWithCleanup = async (email: string, password: string) => {
   }
 };
 
-export const signUpWithCleanup = async (email: string, password: string, firstName: string, lastName: string) => {
+export const signUpWithCleanup = async (email: string, password: string, firstName: string, lastName: string, role: string = 'student') => {
   try {
     // Clean up existing state
     cleanupAuthState();
@@ -61,6 +61,7 @@ export const signUpWithCleanup = async (email: string, password: string, firstNa
         data: {
           first_name: firstName,
           last_name: lastName,
+          role: role,
         },
       },
     });
