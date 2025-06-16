@@ -51,7 +51,10 @@ export const signUpWithCleanup = async (email: string, password: string, firstNa
     // Clean up existing state
     cleanupAuthState();
     
-    const redirectUrl = `${window.location.origin}/`;
+    // Get the current URL origin for redirect
+    const redirectUrl = `${window.location.origin}/auth`;
+    
+    console.log('Signing up with redirect URL:', redirectUrl);
     
     const { data, error } = await supabase.auth.signUp({
       email,

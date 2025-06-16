@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { GraduationCap, Mail, Lock, User, UserCheck } from 'lucide-react';
+import { GraduationCap, Mail, Lock, User, UserCheck, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 const Auth = () => {
@@ -18,15 +18,26 @@ const Auth = () => {
   const [lastName, setLastName] = useState('');
   const [role, setRole] = useState('student');
   const [loading, setLoading] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState('');
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    // Check if user came from email confirmation
+    const error = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
+    
+    if (error) {
+      toast.error(`Authentication error: ${errorDescription || error}`);
+    }
+    
     if (user) {
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, navigate, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +49,13 @@ const Auth = () => {
         const { error } = await signIn(email, password);
         if (error) {
           console.error('Sign in error:', error);
-          toast.error(error.message);
+          if (error.message.includes('Email not confirmed')) {
+            toast.error('Please check your email and click the confirmation link before signing in.');
+          } else if (error.message.includes('Invalid login credentials')) {
+            toast.error('Invalid email or password. Please check your credentials.');
+          } else {
+            toast.error(error.message);
+          }
         } else {
           toast.success('Successfully signed in!');
           // Force page reload for clean state
@@ -49,9 +66,16 @@ const Auth = () => {
         const { error } = await signUp(email, password, firstName, lastName, role);
         if (error) {
           console.error('Sign up error:', error);
-          toast.error(error.message);
+          if (error.message.includes('already registered')) {
+            toast.error('This email is already registered. Please try signing in instead.');
+            setIsLogin(true);
+          } else {
+            toast.error(error.message);
+          }
         } else {
-          toast.success('Check your email to confirm your account!');
+          setConfirmationEmail(email);
+          setShowConfirmation(true);
+          toast.success('Account created! Please check your email for confirmation.');
         }
       }
     } catch (error: any) {
@@ -61,6 +85,62 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  if (showConfirmation) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <CheckCircle className="h-12 w-12 text-green-500" />
+              </div>
+              <CardTitle className="text-white">Check Your Email</CardTitle>
+              <CardDescription className="text-gray-400">
+                We've sent a confirmation link to your email address
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center">
+                <div className="bg-gray-700/50 p-4 rounded-lg mb-4">
+                  <Mail className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                  <p className="text-white font-medium">{confirmationEmail}</p>
+                </div>
+                
+                <div className="space-y-3 text-sm text-gray-300">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                    <p>Click the confirmation link in your email to activate your account</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                    <p>Check your spam folder if you don't see the email</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                    <p>After confirming, return here and sign in with your credentials</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-600">
+                <Button
+                  variant="outline"
+                  className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
+                  onClick={() => {
+                    setShowConfirmation(false);
+                    setIsLogin(true);
+                  }}
+                >
+                  Back to Sign In
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
@@ -200,6 +280,14 @@ const Auth = () => {
                 }
               </button>
             </div>
+
+            {isLogin && (
+              <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <p className="text-xs text-blue-300 text-center">
+                  💡 If you just signed up, please check your email and click the confirmation link first
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
